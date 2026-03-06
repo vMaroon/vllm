@@ -94,6 +94,9 @@ class Request:
 
         # P/D: Connector-specific KV transfer parameters.
         self.kv_transfer_params: dict[str, Any] | None = None
+        # Retention directives for priority-based KV-cache eviction.
+        # Each directive: {start, end, priority, duration}.
+        self.retention_directives: list[dict[str, Any]] | None = None
 
         if pooling_params is not None:
             # Pooling models.
@@ -108,6 +111,9 @@ class Request:
             if sampling_params.extra_args is not None:
                 self.kv_transfer_params = sampling_params.extra_args.get(
                     "kv_transfer_params"
+                )
+                self.retention_directives = sampling_params.extra_args.get(
+                    "retention_directives"
                 )
         else:
             raise ValueError("sampling_params and pooling_params can't both be unset")

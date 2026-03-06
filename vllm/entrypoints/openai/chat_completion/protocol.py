@@ -328,6 +328,15 @@ class ChatCompletionRequest(OpenAIBaseModel):
         description="KVTransfer parameters used for disaggregated serving.",
     )
 
+    retention_directives: list[dict[str, Any]] | None = Field(
+        default=None,
+        description=(
+            "Retention directives for priority-based KV-cache eviction. "
+            "Each directive: {start: int, end: int|null, "
+            "priority: int (0-100), duration: float|null}."
+        ),
+    )
+
     vllm_xargs: dict[str, str | int | float | list[str | int | float]] | None = Field(
         default=None,
         description=(
@@ -470,6 +479,8 @@ class ChatCompletionRequest(OpenAIBaseModel):
         if self.kv_transfer_params:
             # Pass in kv_transfer_params via extra_args
             extra_args["kv_transfer_params"] = self.kv_transfer_params
+        if self.retention_directives:
+            extra_args["retention_directives"] = self.retention_directives
         return SamplingParams.from_optional(
             n=self.n,
             presence_penalty=self.presence_penalty,
