@@ -67,11 +67,6 @@ class BlockStored(KVCacheEvent):
     KV cache consumers to reconstruct block hashes.
     """
 
-    retention_priority: int | None = None
-    """Retention priority assigned by the orchestrator (0-100).
-    None means no explicit priority (default LRU eviction).
-    """
-
     def __hash__(self) -> int:
         return hash(
             (

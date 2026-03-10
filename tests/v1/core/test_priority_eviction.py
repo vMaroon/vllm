@@ -263,29 +263,29 @@ class TestBlockPoolPriorityEviction:
 
 class TestRetentionDirectives:
 
-    def test_apply_retention_to_block_single_match(self):
+    def _make_pool(self) -> "BlockPool":
         from vllm.v1.core.block_pool import BlockPool
-        pool = BlockPool(
+        return BlockPool(
             num_gpu_blocks=4,
             enable_caching=True,
             hash_block_size=16,
         )
+
+    def test_apply_retention_to_block_single_match(self):
+        pool = self._make_pool()
         block = KVCacheBlock(1)
         directives = [
             {"start": 0, "end": 32, "priority": 70, "duration": None},
         ]
         pool._apply_retention_to_block(block, directives,
-                                       token_start=0, token_end=16)
+                                       token_start=0, token_end=16,
+                                       scope="s1")
         assert block.priority == 70
         assert block.priority_expiry is None
+        assert block.priority_scope == "s1"
 
     def test_apply_retention_no_match(self):
-        from vllm.v1.core.block_pool import BlockPool
-        pool = BlockPool(
-            num_gpu_blocks=4,
-            enable_caching=True,
-            hash_block_size=16,
-        )
+        pool = self._make_pool()
         block = KVCacheBlock(1)
         directives = [
             {"start": 100, "end": 200, "priority": 70, "duration": None},
@@ -295,12 +295,7 @@ class TestRetentionDirectives:
         assert block.priority is None
 
     def test_apply_retention_highest_priority_wins(self):
-        from vllm.v1.core.block_pool import BlockPool
-        pool = BlockPool(
-            num_gpu_blocks=4,
-            enable_caching=True,
-            hash_block_size=16,
-        )
+        pool = self._make_pool()
         block = KVCacheBlock(1)
         directives = [
             {"start": 0, "end": 32, "priority": 30},
@@ -308,23 +303,20 @@ class TestRetentionDirectives:
             {"start": 0, "end": 16, "priority": 50},
         ]
         pool._apply_retention_to_block(block, directives,
-                                       token_start=0, token_end=16)
+                                       token_start=0, token_end=16,
+                                       scope="s1")
         assert block.priority == 90
 
     def test_apply_retention_with_duration(self):
-        from vllm.v1.core.block_pool import BlockPool
-        pool = BlockPool(
-            num_gpu_blocks=4,
-            enable_caching=True,
-            hash_block_size=16,
-        )
+        pool = self._make_pool()
         block = KVCacheBlock(1)
         directives = [
             {"start": 0, "end": 32, "priority": 60, "duration": 120.0},
         ]
         before = time.monotonic()
         pool._apply_retention_to_block(block, directives,
-                                       token_start=0, token_end=16)
+                                       token_start=0, token_end=16,
+                                       scope="s1")
         after = time.monotonic()
 
         assert block.priority == 60
@@ -333,16 +325,96 @@ class TestRetentionDirectives:
 
     def test_apply_retention_open_ended_range(self):
         """Directive with end=None matches all blocks from start onward."""
-        from vllm.v1.core.block_pool import BlockPool
-        pool = BlockPool(
-            num_gpu_blocks=4,
-            enable_caching=True,
-            hash_block_size=16,
-        )
+        pool = self._make_pool()
         block = KVCacheBlock(1)
         directives = [
             {"start": 0, "priority": 40},  # No 'end' key
         ]
         pool._apply_retention_to_block(block, directives,
-                                       token_start=1000, token_end=1016)
+                                       token_start=1000, token_end=1016,
+                                       scope="s1")
         assert block.priority == 40
+
+    # --- Scoped ownership tests ---
+
+    def test_escalation_from_different_scope(self):
+        """A different scope can escalate (raise) priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 50
+        block.priority_scope = "s1"
+
+        directives = [{"start": 0, "end": 32, "priority": 90}]
+        pool._apply_retention_to_block(block, directives,
+                                       token_start=0, token_end=16,
+                                       scope="s2")
+        assert block.priority == 90
+        assert block.priority_scope == "s2"
+
+    def test_downgrade_blocked_from_different_scope(self):
+        """A different scope cannot downgrade priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 90
+        block.priority_scope = "s1"
+
+        directives = [{"start": 0, "end": 32, "priority": 50}]
+        pool._apply_retention_to_block(block, directives,
+                                       token_start=0, token_end=16,
+                                       scope="s2")
+        assert block.priority == 90
+        assert block.priority_scope == "s1"
+
+    def test_owner_can_downgrade(self):
+        """The owning scope can downgrade priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 90
+        block.priority_scope = "s1"
+
+        directives = [{"start": 0, "end": 32, "priority": 30}]
+        pool._apply_retention_to_block(block, directives,
+                                       token_start=0, token_end=16,
+                                       scope="s1")
+        assert block.priority == 30
+        assert block.priority_scope == "s1"
+
+    def test_owner_clear_on_no_match(self):
+        """When no directive matches and scope is the owner, clear priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 70
+        block.priority_scope = "s1"
+
+        # Empty directives with same scope → clear
+        pool._apply_retention_to_block(block, [],
+                                       token_start=0, token_end=16,
+                                       scope="s1")
+        assert block.priority is None
+        assert block.priority_scope is None
+
+    def test_non_owner_no_clear_on_no_match(self):
+        """When no directive matches and scope differs, keep priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 70
+        block.priority_scope = "s1"
+
+        pool._apply_retention_to_block(block, [],
+                                       token_start=0, token_end=16,
+                                       scope="s2")
+        assert block.priority == 70
+        assert block.priority_scope == "s1"
+
+    def test_no_scope_no_clear(self):
+        """When scope is None, no-match does not clear existing priority."""
+        pool = self._make_pool()
+        block = KVCacheBlock(1)
+        block.priority = 70
+        block.priority_scope = "s1"
+
+        pool._apply_retention_to_block(block, [],
+                                       token_start=0, token_end=16,
+                                       scope=None)
+        assert block.priority == 70
+        assert block.priority_scope == "s1"

@@ -283,16 +283,22 @@ class BlockPool:
         # prefix), not just new blocks. The cached prefix blocks from
         # previous turns need priority protection too — otherwise they
         # stay in the LRU queue and get evicted first under pressure.
+        #
+        # When a scope is present, blocks owned by that scope but not
+        # matched by any directive are cleared (owner releasing).
         retention = request.retention_directives
-        if retention:
+        scope = request.retention_scope
+        if retention is not None or scope is not None:
+            directives = retention if retention else []
             all_full_blocks = blocks[:num_full_blocks]
             for i, blk in enumerate(all_full_blocks):
                 if blk.is_null:
                     continue
                 token_start = i * block_size
                 token_end = token_start + block_size
-                self._apply_retention_to_block(blk, retention,
-                                               token_start, token_end)
+                self._apply_retention_to_block(blk, directives,
+                                               token_start, token_end,
+                                               scope=scope)
 
         if self.enable_kv_cache_events:
             if num_cached_blocks == 0:
@@ -322,16 +328,6 @@ class BlockPool:
                 )
                 extra_keys_list.append(extra_keys)
 
-            # Compute retention priority for the event: max priority
-            # across newly cached blocks (None if no block has priority).
-            block_priorities = [
-                b.priority for b in new_full_blocks
-                if not b.is_null and b.priority is not None
-            ]
-            retention_priority = (
-                max(block_priorities) if block_priorities else None
-            )
-
             self.kv_event_queue.append(
                 BlockStored(
                     block_hashes=new_hashes,
@@ -346,7 +342,6 @@ class BlockPool:
                     if request.lora_request
                     else None,
                     extra_keys=extra_keys_list if extra_keys_list else None,
-                    retention_priority=retention_priority,
                 )
             )
 
@@ -494,11 +489,18 @@ class BlockPool:
         directives: list[dict],
         token_start: int,
         token_end: int,
+        scope: str | None = None,
     ) -> None:
         """Apply the highest-priority matching retention directive to a block.
 
         A directive matches if its token range overlaps with the block's
         token range. If multiple directives match, the highest priority wins.
+
+        Scoped ownership rules:
+          - Escalation (new > current): always allowed, new scope takes
+            ownership.
+          - Downgrade/clear (new <= current): allowed only if the requesting
+            scope matches the block's current priority_scope.
 
         Args:
             block: The block to annotate.
@@ -507,6 +509,7 @@ class BlockPool:
                 duration (float|None).
             token_start: First token index of this block.
             token_end: Last token index (exclusive) of this block.
+            scope: Opaque scope identifier from the orchestrator.
         """
         best_priority = -1
         best_duration = None
@@ -522,7 +525,25 @@ class BlockPool:
                 best_priority = p
                 best_duration = d.get('duration')
 
-        if best_priority >= 0:
+        if best_priority < 0:
+            # No matching directive. If we own this block, clear it.
+            if scope is not None and block.priority_scope == scope:
+                block.priority = None
+                block.priority_expiry = None
+                block.priority_scope = None
+            return
+
+        current = block.priority if block.priority is not None else -1
+        if best_priority > current:
+            # Escalation: any scope can raise priority and take ownership.
+            block.priority = best_priority
+            block.priority_scope = scope
+            if best_duration is not None:
+                block.priority_expiry = time.monotonic() + best_duration
+            else:
+                block.priority_expiry = None
+        elif scope is not None and block.priority_scope == scope:
+            # Same scope: owner can downgrade or refresh.
             block.priority = best_priority
             if best_duration is not None:
                 block.priority_expiry = time.monotonic() + best_duration

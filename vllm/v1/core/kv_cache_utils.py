@@ -132,6 +132,10 @@ class KVCacheBlock:
     # Timestamp after which priority expires (reverts to None).
     # None means priority persists until explicit release.
     priority_expiry: float | None = None
+    # Opaque scope identifier for the directive owner. Only the scope
+    # that set the priority can downgrade or clear it; other scopes
+    # can only escalate (set a higher priority).
+    priority_scope: str | None = None
     # Timestamp when the block was last freed (for tie-breaking in the
     # priority eviction queue).
     last_freed_time: float = 0.0
@@ -152,6 +156,7 @@ class KVCacheBlock:
         self._block_hash = None
         self.priority = None
         self.priority_expiry = None
+        self.priority_scope = None
 
     def __repr__(self) -> str:
         # Use block_id instead of KVCacheBlock object to avoid calling __repr__
