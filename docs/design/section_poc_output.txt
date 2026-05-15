@@ -1,0 +1,372 @@
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+=== simple ===
+tokens: 49  harvested marks: 4  resolved sections: 4
+#  kind                 role       msg part  tok_start  tok_end  len  decoded[:80]
+   system               system       0              3       14   11  You are a helpful assistant.<|im_end|>\n<|im_start|>user\n
+   message_part         user         1   0         14       26   12  What is the capital of France?<|im_end|>\n<|im_start|>assistant\n
+   message_part         assistant    2   0         26       38   12  Paris is the capital of France.<|im_end|>\n<|im_start|>user\n
+   message_part         user         3   0         38       49   11  Tell me one fun fact.<|im_end|>\n<|im_start|>assistant\n
+
+=== full_features ===
+tokens: 476  harvested marks: 12  resolved sections: 12
+#  kind                 role       msg part  tok_start  tok_end  len  decoded[:80]
+   system               system       0              3       93   90  You are a careful, terse assistant. Always verify weather before mentioning it. 
+   tools                                           93      275  182  Look up the current weather conditions for a given city. Returns temperature in 
+   message_part         user         1   0        275      298   23  What's the weather in San Francisco? Also email me the result at alice@example.c
+   message_part         assistant    2   0        298      315   17  I'll check SF weather, then email the result.\n<tool_call>\n{"name": "
+   tool_calls           assistant    2            315      336   21  get_weather", "arguments": {"city": "San Francisco"}}\n</tool_call><|im_end|>\n<
+   tool_result          tool         3            336      348   12  62F partly cloudy\n</tool_response><|im_end|>\n<|im_start|>user\n
+   message_part         user         4   0        348      360   12  Great, send the email now.<|im_end|>\n<|im_start|>assistant\n
+   message_part         assistant    5   0        360      367    7  <tool_call>\n{"name": "send
+   tool_calls           assistant    5            367      410   43  _email", "arguments": {"to": "alice@example.com", "subject": "SF Weather", "body
+   tool_result          tool         6            410      421   11   sent.\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nI
+   reasoning            assistant    7            421      456   35   have results from both tool calls: weather is 62F partly cloudy and the email s
+   message_part         assistant    7   0        456      476   20  . SF is 62F partly cloudy and your email was sent.<|im_end|>\n<|im_start|>assist
+
+=== agentic_25turn ===
+tokens: 2926  harvested marks: 104  resolved sections: 104
+#  kind                 role       msg part  tok_start  tok_end  len  decoded[:80]
+   system               system       0              3      100   97  You are a support engineer. Verify identity before sharing account details. Use 
+   tools                                          100      265  165  Search the support knowledge base. Returns up to 5 matching article ids with tit
+   message_part         user         1   0        265      297   32  Turn 0: I'm seeing latency on the dashboard, and the metric shown is 200 ms. Can
+   message_part         assistant    2   0        297      310   13  Looking into turn 0 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    2            310      335   25  search_kb", "arguments": {"query": "dashboard latency 200"}}\n</tool_call><|im_e
+   tool_result          tool         3            335      367   32  [KB-000] Dashboard latency issues with metric ~200ms typically resolve via the r
+   message_part         user         4   0        367      399   32  Turn 1: I'm seeing latency on the dashboard, and the metric shown is 217 ms. Can
+   message_part         assistant    5   0        399      412   13  Looking into turn 1 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    5            412      437   25  search_kb", "arguments": {"query": "dashboard latency 217"}}\n</tool_call><|im_e
+   tool_result          tool         6            437      469   32  [KB-001] Dashboard latency issues with metric ~217ms typically resolve via the r
+   message_part         user         7   0        469      501   32  Turn 2: I'm seeing latency on the dashboard, and the metric shown is 234 ms. Can
+   message_part         assistant    8   0        501      514   13  Looking into turn 2 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    8            514      539   25  search_kb", "arguments": {"query": "dashboard latency 234"}}\n</tool_call><|im_e
+   tool_result          tool         9            539      571   32  [KB-002] Dashboard latency issues with metric ~234ms typically resolve via the r
+   message_part         user        10   0        571      603   32  Turn 3: I'm seeing latency on the dashboard, and the metric shown is 251 ms. Can
+   message_part         assistant   11   0        603      616   13  Looking into turn 3 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   11            616      641   25  search_kb", "arguments": {"query": "dashboard latency 251"}}\n</tool_call><|im_e
+   tool_result          tool        12            641      673   32  [KB-003] Dashboard latency issues with metric ~251ms typically resolve via the r
+   message_part         user        13   0        673      705   32  Turn 4: I'm seeing latency on the dashboard, and the metric shown is 268 ms. Can
+   message_part         assistant   14   0        705      718   13  Looking into turn 4 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   14            718      743   25  search_kb", "arguments": {"query": "dashboard latency 268"}}\n</tool_call><|im_e
+   tool_result          tool        15            743      775   32  [KB-004] Dashboard latency issues with metric ~268ms typically resolve via the r
+   message_part         user        16   0        775      807   32  Turn 5: I'm seeing latency on the dashboard, and the metric shown is 285 ms. Can
+   message_part         assistant   17   0        807      820   13  Looking into turn 5 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   17            820      845   25  search_kb", "arguments": {"query": "dashboard latency 285"}}\n</tool_call><|im_e
+   tool_result          tool        18            845      877   32  [KB-005] Dashboard latency issues with metric ~285ms typically resolve via the r
+   message_part         user        19   0        877      909   32  Turn 6: I'm seeing latency on the dashboard, and the metric shown is 302 ms. Can
+   message_part         assistant   20   0        909      922   13  Looking into turn 6 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   20            922      947   25  search_kb", "arguments": {"query": "dashboard latency 302"}}\n</tool_call><|im_e
+   tool_result          tool        21            947      979   32  [KB-006] Dashboard latency issues with metric ~302ms typically resolve via the r
+   message_part         user        22   0        979     1011   32  Turn 7: I'm seeing latency on the dashboard, and the metric shown is 319 ms. Can
+   message_part         assistant   23   0       1011     1024   13  Looking into turn 7 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   23           1024     1049   25  search_kb", "arguments": {"query": "dashboard latency 319"}}\n</tool_call><|im_e
+   tool_result          tool        24           1049     1081   32  [KB-007] Dashboard latency issues with metric ~319ms typically resolve via the r
+   message_part         user        25   0       1081     1113   32  Turn 8: I'm seeing latency on the dashboard, and the metric shown is 336 ms. Can
+   message_part         assistant   26   0       1113     1126   13  Looking into turn 8 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   26           1126     1151   25  search_kb", "arguments": {"query": "dashboard latency 336"}}\n</tool_call><|im_e
+   tool_result          tool        27           1151     1183   32  [KB-008] Dashboard latency issues with metric ~336ms typically resolve via the r
+   message_part         user        28   0       1183     1215   32  Turn 9: I'm seeing latency on the dashboard, and the metric shown is 353 ms. Can
+   message_part         assistant   29   0       1215     1228   13  Looking into turn 9 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   29           1228     1253   25  search_kb", "arguments": {"query": "dashboard latency 353"}}\n</tool_call><|im_e
+   tool_result          tool        30           1253     1285   32  [KB-009] Dashboard latency issues with metric ~353ms typically resolve via the r
+   message_part         user        31   0       1285     1318   33  Turn 10: I'm seeing latency on the dashboard, and the metric shown is 370 ms. Ca
+   message_part         assistant   32   0       1318     1332   14  Looking into turn 10 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   32           1332     1357   25  search_kb", "arguments": {"query": "dashboard latency 370"}}\n</tool_call><|im_e
+   tool_result          tool        33           1357     1389   32  [KB-010] Dashboard latency issues with metric ~370ms typically resolve via the r
+   message_part         user        34   0       1389     1422   33  Turn 11: I'm seeing latency on the dashboard, and the metric shown is 387 ms. Ca
+   message_part         assistant   35   0       1422     1436   14  Looking into turn 11 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   35           1436     1461   25  search_kb", "arguments": {"query": "dashboard latency 387"}}\n</tool_call><|im_e
+   tool_result          tool        36           1461     1493   32  [KB-011] Dashboard latency issues with metric ~387ms typically resolve via the r
+   message_part         user        37   0       1493     1526   33  Turn 12: I'm seeing latency on the dashboard, and the metric shown is 404 ms. Ca
+   message_part         assistant   38   0       1526     1540   14  Looking into turn 12 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   38           1540     1565   25  search_kb", "arguments": {"query": "dashboard latency 404"}}\n</tool_call><|im_e
+   tool_result          tool        39           1565     1597   32  [KB-012] Dashboard latency issues with metric ~404ms typically resolve via the r
+   message_part         user        40   0       1597     1630   33  Turn 13: I'm seeing latency on the dashboard, and the metric shown is 421 ms. Ca
+   message_part         assistant   41   0       1630     1644   14  Looking into turn 13 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   41           1644     1669   25  search_kb", "arguments": {"query": "dashboard latency 421"}}\n</tool_call><|im_e
+   tool_result          tool        42           1669     1701   32  [KB-013] Dashboard latency issues with metric ~421ms typically resolve via the r
+   message_part         user        43   0       1701     1734   33  Turn 14: I'm seeing latency on the dashboard, and the metric shown is 438 ms. Ca
+   message_part         assistant   44   0       1734     1748   14  Looking into turn 14 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   44           1748     1773   25  search_kb", "arguments": {"query": "dashboard latency 438"}}\n</tool_call><|im_e
+   tool_result          tool        45           1773     1805   32  [KB-014] Dashboard latency issues with metric ~438ms typically resolve via the r
+   message_part         user        46   0       1805     1838   33  Turn 15: I'm seeing latency on the dashboard, and the metric shown is 455 ms. Ca
+   message_part         assistant   47   0       1838     1852   14  Looking into turn 15 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   47           1852     1877   25  search_kb", "arguments": {"query": "dashboard latency 455"}}\n</tool_call><|im_e
+   tool_result          tool        48           1877     1909   32  [KB-015] Dashboard latency issues with metric ~455ms typically resolve via the r
+   message_part         user        49   0       1909     1942   33  Turn 16: I'm seeing latency on the dashboard, and the metric shown is 472 ms. Ca
+   message_part         assistant   50   0       1942     1956   14  Looking into turn 16 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   50           1956     1981   25  search_kb", "arguments": {"query": "dashboard latency 472"}}\n</tool_call><|im_e
+   tool_result          tool        51           1981     2013   32  [KB-016] Dashboard latency issues with metric ~472ms typically resolve via the r
+   message_part         user        52   0       2013     2046   33  Turn 17: I'm seeing latency on the dashboard, and the metric shown is 489 ms. Ca
+   message_part         assistant   53   0       2046     2060   14  Looking into turn 17 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   53           2060     2085   25  search_kb", "arguments": {"query": "dashboard latency 489"}}\n</tool_call><|im_e
+   tool_result          tool        54           2085     2117   32  [KB-017] Dashboard latency issues with metric ~489ms typically resolve via the r
+   message_part         user        55   0       2117     2150   33  Turn 18: I'm seeing latency on the dashboard, and the metric shown is 506 ms. Ca
+   message_part         assistant   56   0       2150     2164   14  Looking into turn 18 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   56           2164     2189   25  search_kb", "arguments": {"query": "dashboard latency 506"}}\n</tool_call><|im_e
+   tool_result          tool        57           2189     2221   32  [KB-018] Dashboard latency issues with metric ~506ms typically resolve via the r
+   message_part         user        58   0       2221     2254   33  Turn 19: I'm seeing latency on the dashboard, and the metric shown is 523 ms. Ca
+   message_part         assistant   59   0       2254     2268   14  Looking into turn 19 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   59           2268     2293   25  search_kb", "arguments": {"query": "dashboard latency 523"}}\n</tool_call><|im_e
+   tool_result          tool        60           2293     2325   32  [KB-019] Dashboard latency issues with metric ~523ms typically resolve via the r
+   message_part         user        61   0       2325     2358   33  Turn 20: I'm seeing latency on the dashboard, and the metric shown is 540 ms. Ca
+   message_part         assistant   62   0       2358     2372   14  Looking into turn 20 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   62           2372     2397   25  search_kb", "arguments": {"query": "dashboard latency 540"}}\n</tool_call><|im_e
+   tool_result          tool        63           2397     2429   32  [KB-020] Dashboard latency issues with metric ~540ms typically resolve via the r
+   message_part         user        64   0       2429     2462   33  Turn 21: I'm seeing latency on the dashboard, and the metric shown is 557 ms. Ca
+   message_part         assistant   65   0       2462     2476   14  Looking into turn 21 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   65           2476     2501   25  search_kb", "arguments": {"query": "dashboard latency 557"}}\n</tool_call><|im_e
+   tool_result          tool        66           2501     2533   32  [KB-021] Dashboard latency issues with metric ~557ms typically resolve via the r
+   message_part         user        67   0       2533     2566   33  Turn 22: I'm seeing latency on the dashboard, and the metric shown is 574 ms. Ca
+   message_part         assistant   68   0       2566     2580   14  Looking into turn 22 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   68           2580     2605   25  search_kb", "arguments": {"query": "dashboard latency 574"}}\n</tool_call><|im_e
+   tool_result          tool        69           2605     2637   32  [KB-022] Dashboard latency issues with metric ~574ms typically resolve via the r
+   message_part         user        70   0       2637     2670   33  Turn 23: I'm seeing latency on the dashboard, and the metric shown is 591 ms. Ca
+   message_part         assistant   71   0       2670     2684   14  Looking into turn 23 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   71           2684     2709   25  search_kb", "arguments": {"query": "dashboard latency 591"}}\n</tool_call><|im_e
+   tool_result          tool        72           2709     2741   32  [KB-023] Dashboard latency issues with metric ~591ms typically resolve via the r
+   message_part         user        73   0       2741     2774   33  Turn 24: I'm seeing latency on the dashboard, and the metric shown is 608 ms. Ca
+   message_part         assistant   74   0       2774     2788   14  Looking into turn 24 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   74           2788     2813   25  search_kb", "arguments": {"query": "dashboard latency 608"}}\n</tool_call><|im_e
+   tool_result          tool        75           2813     2847   34  [KB-024] Dashboard latency issues with metric ~608ms typically resolve via the r
+   reasoning            assistant   76           2847     2886   39  All turns reported the dashboard latency issue with different metric values but 
+   message_part         assistant   76   0       2886     2926   40  Summary: I checked KB for each of your reported metrics and the recommended fix 
+
+=== agentic_50turn ===
+tokens: 5532  harvested marks: 204  resolved sections: 204
+#  kind                 role       msg part  tok_start  tok_end  len  decoded[:80]
+   system               system       0              3      100   97  You are a support engineer. Verify identity before sharing account details. Use 
+   tools                                          100      265  165  Search the support knowledge base. Returns up to 5 matching article ids with tit
+   message_part         user         1   0        265      297   32  Turn 0: I'm seeing latency on the dashboard, and the metric shown is 200 ms. Can
+   message_part         assistant    2   0        297      310   13  Looking into turn 0 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    2            310      335   25  search_kb", "arguments": {"query": "dashboard latency 200"}}\n</tool_call><|im_e
+   tool_result          tool         3            335      367   32  [KB-000] Dashboard latency issues with metric ~200ms typically resolve via the r
+   message_part         user         4   0        367      399   32  Turn 1: I'm seeing latency on the dashboard, and the metric shown is 217 ms. Can
+   message_part         assistant    5   0        399      412   13  Looking into turn 1 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    5            412      437   25  search_kb", "arguments": {"query": "dashboard latency 217"}}\n</tool_call><|im_e
+   tool_result          tool         6            437      469   32  [KB-001] Dashboard latency issues with metric ~217ms typically resolve via the r
+   message_part         user         7   0        469      501   32  Turn 2: I'm seeing latency on the dashboard, and the metric shown is 234 ms. Can
+   message_part         assistant    8   0        501      514   13  Looking into turn 2 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant    8            514      539   25  search_kb", "arguments": {"query": "dashboard latency 234"}}\n</tool_call><|im_e
+   tool_result          tool         9            539      571   32  [KB-002] Dashboard latency issues with metric ~234ms typically resolve via the r
+   message_part         user        10   0        571      603   32  Turn 3: I'm seeing latency on the dashboard, and the metric shown is 251 ms. Can
+   message_part         assistant   11   0        603      616   13  Looking into turn 3 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   11            616      641   25  search_kb", "arguments": {"query": "dashboard latency 251"}}\n</tool_call><|im_e
+   tool_result          tool        12            641      673   32  [KB-003] Dashboard latency issues with metric ~251ms typically resolve via the r
+   message_part         user        13   0        673      705   32  Turn 4: I'm seeing latency on the dashboard, and the metric shown is 268 ms. Can
+   message_part         assistant   14   0        705      718   13  Looking into turn 4 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   14            718      743   25  search_kb", "arguments": {"query": "dashboard latency 268"}}\n</tool_call><|im_e
+   tool_result          tool        15            743      775   32  [KB-004] Dashboard latency issues with metric ~268ms typically resolve via the r
+   message_part         user        16   0        775      807   32  Turn 5: I'm seeing latency on the dashboard, and the metric shown is 285 ms. Can
+   message_part         assistant   17   0        807      820   13  Looking into turn 5 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   17            820      845   25  search_kb", "arguments": {"query": "dashboard latency 285"}}\n</tool_call><|im_e
+   tool_result          tool        18            845      877   32  [KB-005] Dashboard latency issues with metric ~285ms typically resolve via the r
+   message_part         user        19   0        877      909   32  Turn 6: I'm seeing latency on the dashboard, and the metric shown is 302 ms. Can
+   message_part         assistant   20   0        909      922   13  Looking into turn 6 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   20            922      947   25  search_kb", "arguments": {"query": "dashboard latency 302"}}\n</tool_call><|im_e
+   tool_result          tool        21            947      979   32  [KB-006] Dashboard latency issues with metric ~302ms typically resolve via the r
+   message_part         user        22   0        979     1011   32  Turn 7: I'm seeing latency on the dashboard, and the metric shown is 319 ms. Can
+   message_part         assistant   23   0       1011     1024   13  Looking into turn 7 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   23           1024     1049   25  search_kb", "arguments": {"query": "dashboard latency 319"}}\n</tool_call><|im_e
+   tool_result          tool        24           1049     1081   32  [KB-007] Dashboard latency issues with metric ~319ms typically resolve via the r
+   message_part         user        25   0       1081     1113   32  Turn 8: I'm seeing latency on the dashboard, and the metric shown is 336 ms. Can
+   message_part         assistant   26   0       1113     1126   13  Looking into turn 8 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   26           1126     1151   25  search_kb", "arguments": {"query": "dashboard latency 336"}}\n</tool_call><|im_e
+   tool_result          tool        27           1151     1183   32  [KB-008] Dashboard latency issues with metric ~336ms typically resolve via the r
+   message_part         user        28   0       1183     1215   32  Turn 9: I'm seeing latency on the dashboard, and the metric shown is 353 ms. Can
+   message_part         assistant   29   0       1215     1228   13  Looking into turn 9 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   29           1228     1253   25  search_kb", "arguments": {"query": "dashboard latency 353"}}\n</tool_call><|im_e
+   tool_result          tool        30           1253     1285   32  [KB-009] Dashboard latency issues with metric ~353ms typically resolve via the r
+   message_part         user        31   0       1285     1318   33  Turn 10: I'm seeing latency on the dashboard, and the metric shown is 370 ms. Ca
+   message_part         assistant   32   0       1318     1332   14  Looking into turn 10 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   32           1332     1357   25  search_kb", "arguments": {"query": "dashboard latency 370"}}\n</tool_call><|im_e
+   tool_result          tool        33           1357     1389   32  [KB-010] Dashboard latency issues with metric ~370ms typically resolve via the r
+   message_part         user        34   0       1389     1422   33  Turn 11: I'm seeing latency on the dashboard, and the metric shown is 387 ms. Ca
+   message_part         assistant   35   0       1422     1436   14  Looking into turn 11 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   35           1436     1461   25  search_kb", "arguments": {"query": "dashboard latency 387"}}\n</tool_call><|im_e
+   tool_result          tool        36           1461     1493   32  [KB-011] Dashboard latency issues with metric ~387ms typically resolve via the r
+   message_part         user        37   0       1493     1526   33  Turn 12: I'm seeing latency on the dashboard, and the metric shown is 404 ms. Ca
+   message_part         assistant   38   0       1526     1540   14  Looking into turn 12 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   38           1540     1565   25  search_kb", "arguments": {"query": "dashboard latency 404"}}\n</tool_call><|im_e
+   tool_result          tool        39           1565     1597   32  [KB-012] Dashboard latency issues with metric ~404ms typically resolve via the r
+   message_part         user        40   0       1597     1630   33  Turn 13: I'm seeing latency on the dashboard, and the metric shown is 421 ms. Ca
+   message_part         assistant   41   0       1630     1644   14  Looking into turn 13 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   41           1644     1669   25  search_kb", "arguments": {"query": "dashboard latency 421"}}\n</tool_call><|im_e
+   tool_result          tool        42           1669     1701   32  [KB-013] Dashboard latency issues with metric ~421ms typically resolve via the r
+   message_part         user        43   0       1701     1734   33  Turn 14: I'm seeing latency on the dashboard, and the metric shown is 438 ms. Ca
+   message_part         assistant   44   0       1734     1748   14  Looking into turn 14 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   44           1748     1773   25  search_kb", "arguments": {"query": "dashboard latency 438"}}\n</tool_call><|im_e
+   tool_result          tool        45           1773     1805   32  [KB-014] Dashboard latency issues with metric ~438ms typically resolve via the r
+   message_part         user        46   0       1805     1838   33  Turn 15: I'm seeing latency on the dashboard, and the metric shown is 455 ms. Ca
+   message_part         assistant   47   0       1838     1852   14  Looking into turn 15 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   47           1852     1877   25  search_kb", "arguments": {"query": "dashboard latency 455"}}\n</tool_call><|im_e
+   tool_result          tool        48           1877     1909   32  [KB-015] Dashboard latency issues with metric ~455ms typically resolve via the r
+   message_part         user        49   0       1909     1942   33  Turn 16: I'm seeing latency on the dashboard, and the metric shown is 472 ms. Ca
+   message_part         assistant   50   0       1942     1956   14  Looking into turn 16 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   50           1956     1981   25  search_kb", "arguments": {"query": "dashboard latency 472"}}\n</tool_call><|im_e
+   tool_result          tool        51           1981     2013   32  [KB-016] Dashboard latency issues with metric ~472ms typically resolve via the r
+   message_part         user        52   0       2013     2046   33  Turn 17: I'm seeing latency on the dashboard, and the metric shown is 489 ms. Ca
+   message_part         assistant   53   0       2046     2060   14  Looking into turn 17 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   53           2060     2085   25  search_kb", "arguments": {"query": "dashboard latency 489"}}\n</tool_call><|im_e
+   tool_result          tool        54           2085     2117   32  [KB-017] Dashboard latency issues with metric ~489ms typically resolve via the r
+   message_part         user        55   0       2117     2150   33  Turn 18: I'm seeing latency on the dashboard, and the metric shown is 506 ms. Ca
+   message_part         assistant   56   0       2150     2164   14  Looking into turn 18 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   56           2164     2189   25  search_kb", "arguments": {"query": "dashboard latency 506"}}\n</tool_call><|im_e
+   tool_result          tool        57           2189     2221   32  [KB-018] Dashboard latency issues with metric ~506ms typically resolve via the r
+   message_part         user        58   0       2221     2254   33  Turn 19: I'm seeing latency on the dashboard, and the metric shown is 523 ms. Ca
+   message_part         assistant   59   0       2254     2268   14  Looking into turn 19 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   59           2268     2293   25  search_kb", "arguments": {"query": "dashboard latency 523"}}\n</tool_call><|im_e
+   tool_result          tool        60           2293     2325   32  [KB-019] Dashboard latency issues with metric ~523ms typically resolve via the r
+   message_part         user        61   0       2325     2358   33  Turn 20: I'm seeing latency on the dashboard, and the metric shown is 540 ms. Ca
+   message_part         assistant   62   0       2358     2372   14  Looking into turn 20 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   62           2372     2397   25  search_kb", "arguments": {"query": "dashboard latency 540"}}\n</tool_call><|im_e
+   tool_result          tool        63           2397     2429   32  [KB-020] Dashboard latency issues with metric ~540ms typically resolve via the r
+   message_part         user        64   0       2429     2462   33  Turn 21: I'm seeing latency on the dashboard, and the metric shown is 557 ms. Ca
+   message_part         assistant   65   0       2462     2476   14  Looking into turn 21 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   65           2476     2501   25  search_kb", "arguments": {"query": "dashboard latency 557"}}\n</tool_call><|im_e
+   tool_result          tool        66           2501     2533   32  [KB-021] Dashboard latency issues with metric ~557ms typically resolve via the r
+   message_part         user        67   0       2533     2566   33  Turn 22: I'm seeing latency on the dashboard, and the metric shown is 574 ms. Ca
+   message_part         assistant   68   0       2566     2580   14  Looking into turn 22 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   68           2580     2605   25  search_kb", "arguments": {"query": "dashboard latency 574"}}\n</tool_call><|im_e
+   tool_result          tool        69           2605     2637   32  [KB-022] Dashboard latency issues with metric ~574ms typically resolve via the r
+   message_part         user        70   0       2637     2670   33  Turn 23: I'm seeing latency on the dashboard, and the metric shown is 591 ms. Ca
+   message_part         assistant   71   0       2670     2684   14  Looking into turn 23 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   71           2684     2709   25  search_kb", "arguments": {"query": "dashboard latency 591"}}\n</tool_call><|im_e
+   tool_result          tool        72           2709     2741   32  [KB-023] Dashboard latency issues with metric ~591ms typically resolve via the r
+   message_part         user        73   0       2741     2774   33  Turn 24: I'm seeing latency on the dashboard, and the metric shown is 608 ms. Ca
+   message_part         assistant   74   0       2774     2788   14  Looking into turn 24 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   74           2788     2813   25  search_kb", "arguments": {"query": "dashboard latency 608"}}\n</tool_call><|im_e
+   tool_result          tool        75           2813     2845   32  [KB-024] Dashboard latency issues with metric ~608ms typically resolve via the r
+   message_part         user        76   0       2845     2878   33  Turn 25: I'm seeing latency on the dashboard, and the metric shown is 625 ms. Ca
+   message_part         assistant   77   0       2878     2892   14  Looking into turn 25 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   77           2892     2917   25  search_kb", "arguments": {"query": "dashboard latency 625"}}\n</tool_call><|im_e
+   tool_result          tool        78           2917     2949   32  [KB-025] Dashboard latency issues with metric ~625ms typically resolve via the r
+   message_part         user        79   0       2949     2982   33  Turn 26: I'm seeing latency on the dashboard, and the metric shown is 642 ms. Ca
+   message_part         assistant   80   0       2982     2996   14  Looking into turn 26 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   80           2996     3021   25  search_kb", "arguments": {"query": "dashboard latency 642"}}\n</tool_call><|im_e
+   tool_result          tool        81           3021     3053   32  [KB-026] Dashboard latency issues with metric ~642ms typically resolve via the r
+   message_part         user        82   0       3053     3086   33  Turn 27: I'm seeing latency on the dashboard, and the metric shown is 659 ms. Ca
+   message_part         assistant   83   0       3086     3100   14  Looking into turn 27 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   83           3100     3125   25  search_kb", "arguments": {"query": "dashboard latency 659"}}\n</tool_call><|im_e
+   tool_result          tool        84           3125     3157   32  [KB-027] Dashboard latency issues with metric ~659ms typically resolve via the r
+   message_part         user        85   0       3157     3190   33  Turn 28: I'm seeing latency on the dashboard, and the metric shown is 676 ms. Ca
+   message_part         assistant   86   0       3190     3204   14  Looking into turn 28 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   86           3204     3229   25  search_kb", "arguments": {"query": "dashboard latency 676"}}\n</tool_call><|im_e
+   tool_result          tool        87           3229     3261   32  [KB-028] Dashboard latency issues with metric ~676ms typically resolve via the r
+   message_part         user        88   0       3261     3294   33  Turn 29: I'm seeing latency on the dashboard, and the metric shown is 693 ms. Ca
+   message_part         assistant   89   0       3294     3308   14  Looking into turn 29 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   89           3308     3333   25  search_kb", "arguments": {"query": "dashboard latency 693"}}\n</tool_call><|im_e
+   tool_result          tool        90           3333     3365   32  [KB-029] Dashboard latency issues with metric ~693ms typically resolve via the r
+   message_part         user        91   0       3365     3398   33  Turn 30: I'm seeing latency on the dashboard, and the metric shown is 710 ms. Ca
+   message_part         assistant   92   0       3398     3412   14  Looking into turn 30 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   92           3412     3437   25  search_kb", "arguments": {"query": "dashboard latency 710"}}\n</tool_call><|im_e
+   tool_result          tool        93           3437     3469   32  [KB-030] Dashboard latency issues with metric ~710ms typically resolve via the r
+   message_part         user        94   0       3469     3502   33  Turn 31: I'm seeing latency on the dashboard, and the metric shown is 727 ms. Ca
+   message_part         assistant   95   0       3502     3516   14  Looking into turn 31 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   95           3516     3541   25  search_kb", "arguments": {"query": "dashboard latency 727"}}\n</tool_call><|im_e
+   tool_result          tool        96           3541     3573   32  [KB-031] Dashboard latency issues with metric ~727ms typically resolve via the r
+   message_part         user        97   0       3573     3606   33  Turn 32: I'm seeing latency on the dashboard, and the metric shown is 744 ms. Ca
+   message_part         assistant   98   0       3606     3620   14  Looking into turn 32 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant   98           3620     3645   25  search_kb", "arguments": {"query": "dashboard latency 744"}}\n</tool_call><|im_e
+   tool_result          tool        99           3645     3677   32  [KB-032] Dashboard latency issues with metric ~744ms typically resolve via the r
+   message_part         user       100   0       3677     3710   33  Turn 33: I'm seeing latency on the dashboard, and the metric shown is 761 ms. Ca
+   message_part         assistant  101   0       3710     3724   14  Looking into turn 33 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  101           3724     3749   25  search_kb", "arguments": {"query": "dashboard latency 761"}}\n</tool_call><|im_e
+   tool_result          tool       102           3749     3781   32  [KB-033] Dashboard latency issues with metric ~761ms typically resolve via the r
+   message_part         user       103   0       3781     3814   33  Turn 34: I'm seeing latency on the dashboard, and the metric shown is 778 ms. Ca
+   message_part         assistant  104   0       3814     3828   14  Looking into turn 34 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  104           3828     3853   25  search_kb", "arguments": {"query": "dashboard latency 778"}}\n</tool_call><|im_e
+   tool_result          tool       105           3853     3885   32  [KB-034] Dashboard latency issues with metric ~778ms typically resolve via the r
+   message_part         user       106   0       3885     3918   33  Turn 35: I'm seeing latency on the dashboard, and the metric shown is 795 ms. Ca
+   message_part         assistant  107   0       3918     3932   14  Looking into turn 35 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  107           3932     3957   25  search_kb", "arguments": {"query": "dashboard latency 795"}}\n</tool_call><|im_e
+   tool_result          tool       108           3957     3989   32  [KB-035] Dashboard latency issues with metric ~795ms typically resolve via the r
+   message_part         user       109   0       3989     4022   33  Turn 36: I'm seeing latency on the dashboard, and the metric shown is 812 ms. Ca
+   message_part         assistant  110   0       4022     4036   14  Looking into turn 36 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  110           4036     4061   25  search_kb", "arguments": {"query": "dashboard latency 812"}}\n</tool_call><|im_e
+   tool_result          tool       111           4061     4093   32  [KB-036] Dashboard latency issues with metric ~812ms typically resolve via the r
+   message_part         user       112   0       4093     4126   33  Turn 37: I'm seeing latency on the dashboard, and the metric shown is 829 ms. Ca
+   message_part         assistant  113   0       4126     4140   14  Looking into turn 37 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  113           4140     4165   25  search_kb", "arguments": {"query": "dashboard latency 829"}}\n</tool_call><|im_e
+   tool_result          tool       114           4165     4197   32  [KB-037] Dashboard latency issues with metric ~829ms typically resolve via the r
+   message_part         user       115   0       4197     4230   33  Turn 38: I'm seeing latency on the dashboard, and the metric shown is 846 ms. Ca
+   message_part         assistant  116   0       4230     4244   14  Looking into turn 38 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  116           4244     4269   25  search_kb", "arguments": {"query": "dashboard latency 846"}}\n</tool_call><|im_e
+   tool_result          tool       117           4269     4301   32  [KB-038] Dashboard latency issues with metric ~846ms typically resolve via the r
+   message_part         user       118   0       4301     4334   33  Turn 39: I'm seeing latency on the dashboard, and the metric shown is 863 ms. Ca
+   message_part         assistant  119   0       4334     4348   14  Looking into turn 39 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  119           4348     4373   25  search_kb", "arguments": {"query": "dashboard latency 863"}}\n</tool_call><|im_e
+   tool_result          tool       120           4373     4405   32  [KB-039] Dashboard latency issues with metric ~863ms typically resolve via the r
+   message_part         user       121   0       4405     4438   33  Turn 40: I'm seeing latency on the dashboard, and the metric shown is 880 ms. Ca
+   message_part         assistant  122   0       4438     4452   14  Looking into turn 40 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  122           4452     4477   25  search_kb", "arguments": {"query": "dashboard latency 880"}}\n</tool_call><|im_e
+   tool_result          tool       123           4477     4509   32  [KB-040] Dashboard latency issues with metric ~880ms typically resolve via the r
+   message_part         user       124   0       4509     4542   33  Turn 41: I'm seeing latency on the dashboard, and the metric shown is 897 ms. Ca
+   message_part         assistant  125   0       4542     4556   14  Looking into turn 41 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  125           4556     4581   25  search_kb", "arguments": {"query": "dashboard latency 897"}}\n</tool_call><|im_e
+   tool_result          tool       126           4581     4613   32  [KB-041] Dashboard latency issues with metric ~897ms typically resolve via the r
+   message_part         user       127   0       4613     4646   33  Turn 42: I'm seeing latency on the dashboard, and the metric shown is 914 ms. Ca
+   message_part         assistant  128   0       4646     4660   14  Looking into turn 42 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  128           4660     4685   25  search_kb", "arguments": {"query": "dashboard latency 914"}}\n</tool_call><|im_e
+   tool_result          tool       129           4685     4717   32  [KB-042] Dashboard latency issues with metric ~914ms typically resolve via the r
+   message_part         user       130   0       4717     4750   33  Turn 43: I'm seeing latency on the dashboard, and the metric shown is 931 ms. Ca
+   message_part         assistant  131   0       4750     4764   14  Looking into turn 43 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  131           4764     4789   25  search_kb", "arguments": {"query": "dashboard latency 931"}}\n</tool_call><|im_e
+   tool_result          tool       132           4789     4821   32  [KB-043] Dashboard latency issues with metric ~931ms typically resolve via the r
+   message_part         user       133   0       4821     4854   33  Turn 44: I'm seeing latency on the dashboard, and the metric shown is 948 ms. Ca
+   message_part         assistant  134   0       4854     4868   14  Looking into turn 44 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  134           4868     4893   25  search_kb", "arguments": {"query": "dashboard latency 948"}}\n</tool_call><|im_e
+   tool_result          tool       135           4893     4925   32  [KB-044] Dashboard latency issues with metric ~948ms typically resolve via the r
+   message_part         user       136   0       4925     4958   33  Turn 45: I'm seeing latency on the dashboard, and the metric shown is 965 ms. Ca
+   message_part         assistant  137   0       4958     4972   14  Looking into turn 45 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  137           4972     4997   25  search_kb", "arguments": {"query": "dashboard latency 965"}}\n</tool_call><|im_e
+   tool_result          tool       138           4997     5029   32  [KB-045] Dashboard latency issues with metric ~965ms typically resolve via the r
+   message_part         user       139   0       5029     5062   33  Turn 46: I'm seeing latency on the dashboard, and the metric shown is 982 ms. Ca
+   message_part         assistant  140   0       5062     5076   14  Looking into turn 46 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  140           5076     5101   25  search_kb", "arguments": {"query": "dashboard latency 982"}}\n</tool_call><|im_e
+   tool_result          tool       141           5101     5133   32  [KB-046] Dashboard latency issues with metric ~982ms typically resolve via the r
+   message_part         user       142   0       5133     5166   33  Turn 47: I'm seeing latency on the dashboard, and the metric shown is 999 ms. Ca
+   message_part         assistant  143   0       5166     5180   14  Looking into turn 47 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  143           5180     5205   25  search_kb", "arguments": {"query": "dashboard latency 999"}}\n</tool_call><|im_e
+   tool_result          tool       144           5205     5237   32  [KB-047] Dashboard latency issues with metric ~999ms typically resolve via the r
+   message_part         user       145   0       5237     5271   34  Turn 48: I'm seeing latency on the dashboard, and the metric shown is 1016 ms. C
+   message_part         assistant  146   0       5271     5285   14  Looking into turn 48 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  146           5285     5311   26  search_kb", "arguments": {"query": "dashboard latency 1016"}}\n</tool_call><|im_
+   tool_result          tool       147           5311     5344   33  [KB-048] Dashboard latency issues with metric ~1016ms typically resolve via the 
+   message_part         user       148   0       5344     5378   34  Turn 49: I'm seeing latency on the dashboard, and the metric shown is 1033 ms. C
+   message_part         assistant  149   0       5378     5392   14  Looking into turn 49 now.\n<tool_call>\n{"name": "
+   tool_calls           assistant  149           5392     5418   26  search_kb", "arguments": {"query": "dashboard latency 1033"}}\n</tool_call><|im_
+   tool_result          tool       150           5418     5453   35  [KB-049] Dashboard latency issues with metric ~1033ms typically resolve via the 
+   reasoning            assistant  151           5453     5492   39  All turns reported the dashboard latency issue with different metric values but 
+   message_part         assistant  151   0       5492     5532   40  Summary: I checked KB for each of your reported metrics and the recommended fix 
+
+--- profile: simple (30 iters) ---
+baseline (tokenize)        : median=   0.17ms  p99=   0.18ms
+sectioned (legacy, total)  : median=   0.48ms  p99=   0.63ms   overhead +0.31/+0.46ms
+marginal (efficient w/up)  : median=   0.11ms  p99=   0.14ms   <- harvest+resolver only, caller already has clean_str+offsets
+
+--- profile: full_features (30 iters) ---
+baseline (tokenize)        : median=   0.98ms  p99=   1.37ms
+sectioned (legacy, total)  : median=   2.48ms  p99=   2.95ms   overhead +1.50/+1.59ms
+marginal (efficient w/up)  : median=   0.38ms  p99=   0.51ms   <- harvest+resolver only, caller already has clean_str+offsets
+
+--- profile: agentic_25turn (30 iters) ---
+baseline (tokenize)        : median=   6.14ms  p99=   6.59ms
+sectioned (legacy, total)  : median=  15.01ms  p99=  15.93ms   overhead +8.86/+9.34ms
+marginal (efficient w/up)  : median=   2.63ms  p99=   2.96ms   <- harvest+resolver only, caller already has clean_str+offsets
+
+--- profile: agentic_50turn (30 iters) ---
+baseline (tokenize)        : median=  11.23ms  p99=  11.60ms
+sectioned (legacy, total)  : median=  28.35ms  p99=  29.17ms   overhead +17.12/+17.57ms
+marginal (efficient w/up)  : median=   5.23ms  p99=   5.62ms   <- harvest+resolver only, caller already has clean_str+offsets
+
+=== summary ===
+{"case": "simple", "n_tokens": 49, "n_marks": 4, "n_sections": 4, "kinds": ["message_part", "system"]}
+{"case": "full_features", "n_tokens": 476, "n_marks": 12, "n_sections": 12, "kinds": ["message_part", "reasoning", "system", "tool_calls", "tool_result", "tools"]}
+{"case": "agentic_25turn", "n_tokens": 2926, "n_marks": 104, "n_sections": 104, "kinds": ["message_part", "reasoning", "system", "tool_calls", "tool_result", "tools"]}
+{"case": "agentic_50turn", "n_tokens": 5532, "n_marks": 204, "n_sections": 204, "kinds": ["message_part", "reasoning", "system", "tool_calls", "tool_result", "tools"]}
+{"case": "simple", "iters": 30, "baseline": {"median_ms": 0.16820849941723282, "p99_ms": 0.179667000338668, "max_ms": 0.18554200141807087, "mean_ms": 0.17031963355596721}, "sectioned_legacy_total": {"median_ms": 0.47556249955960084, "p99_ms": 0.6349579998641275, "max_ms": 0.7986660002643475, "mean_ms": 0.4967085000316729}, "marginal_efficient": {"median_ms": 0.11327049924148014, "p99_ms": 0.14100000043981709, "max_ms": 0.19837500076391734, "mean_ms": 0.11858466677949764}, "overhead_legacy_median_ms": 0.307354000142368, "marginal_median_ms": 0.11327049924148014}
+{"case": "full_features", "iters": 30, "baseline": {"median_ms": 0.9814165005082032, "p99_ms": 1.3659579999512061, "max_ms": 1.3923330006946344, "mean_ms": 1.031838966810028}, "sectioned_legacy_total": {"median_ms": 2.477374499903817, "p99_ms": 2.9518329993152292, "max_ms": 2.9858750003768364, "mean_ms": 2.520163899923015}, "marginal_efficient": {"median_ms": 0.38389600013033487, "p99_ms": 0.5091250004625181, "max_ms": 0.5304999995132675, "mean_ms": 0.40624166673903045}, "overhead_legacy_median_ms": 1.495957999395614, "marginal_median_ms": 0.38389600013033487}
+{"case": "agentic_25turn", "iters": 30, "baseline": {"median_ms": 6.141562501397857, "p99_ms": 6.588542000827147, "max_ms": 6.915500000104657, "mean_ms": 6.15366803346357}, "sectioned_legacy_total": {"median_ms": 15.00502050112118, "p99_ms": 15.929957999105682, "max_ms": 16.303541000525, "mean_ms": 15.006905533118697}, "marginal_efficient": {"median_ms": 2.6322915009586723, "p99_ms": 2.960458999950788, "max_ms": 2.9649589996552095, "mean_ms": 2.6812694335603737}, "overhead_legacy_median_ms": 8.863457999723323, "marginal_median_ms": 2.6322915009586723}
+{"case": "agentic_50turn", "iters": 30, "baseline": {"median_ms": 11.2342920001538, "p99_ms": 11.603416000070865, "max_ms": 11.742791999495239, "mean_ms": 11.238202800086583}, "sectioned_legacy_total": {"median_ms": 28.353999999126245, "p99_ms": 29.174707999118255, "max_ms": 29.504666999855544, "mean_ms": 28.337362399967486}, "marginal_efficient": {"median_ms": 5.226604000199586, "p99_ms": 5.621000000246568, "max_ms": 5.6563749985798495, "mean_ms": 5.197331866656896}, "overhead_legacy_median_ms": 17.119707998972444, "marginal_median_ms": 5.226604000199586}
