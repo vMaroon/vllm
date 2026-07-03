@@ -751,6 +751,10 @@ class BaseRenderer(ABC, Generic[_T]):
             engine_input["prompt"] = prompt_text
         if cache_salt := prompt.get("cache_salt"):
             engine_input["cache_salt"] = cache_salt
+        if session_tag := prompt.get("session_tag"):
+            engine_input["session_tag"] = session_tag
+        if continuation_id := prompt.get("continuation_id"):
+            engine_input["continuation_id"] = continuation_id
 
         return engine_input
 
@@ -809,6 +813,10 @@ class BaseRenderer(ABC, Generic[_T]):
             engine_input["prompt"] = prompt_text
         if cache_salt := prompt.get("cache_salt"):
             engine_input["cache_salt"] = cache_salt
+        if session_tag := prompt.get("session_tag"):
+            engine_input["session_tag"] = session_tag
+        if continuation_id := prompt.get("continuation_id"):
+            engine_input["continuation_id"] = continuation_id
 
         return engine_input
 
