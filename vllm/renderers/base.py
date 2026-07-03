@@ -798,6 +798,10 @@ class BaseRenderer(ABC, Generic[_T]):
             (offsets := prompt.get("prompt_token_offsets")) is not None
         ):
             engine_input["prompt_token_offsets"] = offsets
+        if session_tag := prompt.get("session_tag"):
+            engine_input["session_tag"] = session_tag
+        if continuation_id := prompt.get("continuation_id"):
+            engine_input["continuation_id"] = continuation_id
 
         return engine_input
 
@@ -861,6 +865,10 @@ class BaseRenderer(ABC, Generic[_T]):
             (offsets := prompt.get("prompt_token_offsets")) is not None
         ):
             engine_input["prompt_token_offsets"] = offsets
+        if session_tag := prompt.get("session_tag"):
+            engine_input["session_tag"] = session_tag
+        if continuation_id := prompt.get("continuation_id"):
+            engine_input["continuation_id"] = continuation_id
 
         return engine_input
 

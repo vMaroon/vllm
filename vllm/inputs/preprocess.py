@@ -155,6 +155,10 @@ class InputPreprocessor:
             inputs["prompt"] = prompt_text
         if cache_salt := parsed_content.get("cache_salt"):
             inputs["cache_salt"] = cache_salt
+        if session_tag := parsed_content.get("session_tag"):
+            inputs["session_tag"] = session_tag
+        if continuation_id := parsed_content.get("continuation_id"):
+            inputs["continuation_id"] = continuation_id
 
         return inputs
 
@@ -184,6 +188,10 @@ class InputPreprocessor:
 
         if cache_salt := parsed_content.get("cache_salt"):
             inputs["cache_salt"] = cache_salt
+        if session_tag := parsed_content.get("session_tag"):
+            inputs["session_tag"] = session_tag
+        if continuation_id := parsed_content.get("continuation_id"):
+            inputs["continuation_id"] = continuation_id
 
         return inputs
 
