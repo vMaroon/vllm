@@ -131,6 +131,11 @@ class EngineCoreRequest(
     # KV-transfer request is rejected on the D node before engine admission.
     abort_immediately: bool = False
 
+    # Opaque session-identity labels echoed on KV cache events (BlockStored)
+    # for session-granular cache orchestration. Never used in hashing.
+    session_tag: str | None = None
+    continuation_id: str | None = None
+
     @property
     def params(self) -> SamplingParams | PoolingParams:
         """Return the processed params (sampling or pooling)."""

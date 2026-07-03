@@ -327,6 +327,8 @@ class BlockPool:
                     else None,
                     extra_keys=extra_keys_list if extra_keys_list else None,
                     group_idx=kv_cache_group_id,
+                    session_tag=request.session_tag,
+                    continuation_id=request.continuation_id,
                 )
             )
 

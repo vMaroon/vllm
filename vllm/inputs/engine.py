@@ -25,6 +25,12 @@ class _InputOptions(TypedDict):
     cache_salt: NotRequired[str]
     """Optional cache salt to be used for prefix caching."""
 
+    session_tag: NotRequired[str]
+    """Opaque session identity tag echoed on KV cache events."""
+
+    continuation_id: NotRequired[str]
+    """Opaque continuation identifier echoed on KV cache events."""
+
 
 class TokensInput(_InputOptions):
     """Represents token-based input to the engine."""

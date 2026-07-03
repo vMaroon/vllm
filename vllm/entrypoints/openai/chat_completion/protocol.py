@@ -396,6 +396,21 @@ class ChatCompletionRequest(OpenAIBaseModel):
             "to 256 bit)."
         ),
     )
+    session_tag: str | None = Field(
+        default=None,
+        description=(
+            "Opaque session identity tag echoed on KV cache events for "
+            "session-granular cache orchestration. Not used in prefix-cache "
+            "hash computation."
+        ),
+    )
+    continuation_id: str | None = Field(
+        default=None,
+        description=(
+            "Opaque continuation (append) identifier echoed on KV cache "
+            "events alongside session_tag."
+        ),
+    )
 
     kv_transfer_params: dict[str, Any] | None = Field(
         default=None,

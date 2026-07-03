@@ -73,6 +73,11 @@ class BlockStored(KVCacheEvent):
     kv_cache_spec_kind: str | None = None
     kv_cache_spec_sliding_window: int | None = None
 
+    # Opaque session-identity labels for session-granular cache
+    # orchestration; echoed from the request, never used in hashing.
+    session_tag: str | None = None
+    continuation_id: str | None = None
+
     def __hash__(self) -> int:
         return hash(
             (

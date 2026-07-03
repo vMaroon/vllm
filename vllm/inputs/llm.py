@@ -95,6 +95,12 @@ class _PromptOptions(TypedDict):
     Optional cache salt to be used for prefix caching.
     """
 
+    session_tag: NotRequired[str]
+    """Opaque session identity tag echoed on KV cache events."""
+
+    continuation_id: NotRequired[str]
+    """Opaque continuation identifier echoed on KV cache events."""
+
 
 class TextPrompt(_PromptOptions):
     """Schema for a text prompt."""
