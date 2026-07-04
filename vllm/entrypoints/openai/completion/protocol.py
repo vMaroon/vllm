@@ -179,6 +179,23 @@ class CompletionRequest(OpenAIBaseModel):
             "events alongside session_tag."
         ),
     )
+    retention_directives: list[dict[str, Any]] | None = Field(
+        default=None,
+        description=(
+            "Retention directives for priority-based KV-cache eviction. "
+            "Each directive: {start: int, end: int|null, "
+            "priority: int (0-100), duration: float|null}."
+        ),
+    )
+
+    retention_scope: str | None = Field(
+        default=None,
+        description=(
+            "Opaque scope identifier for retention ownership. "
+            "Only the scope that set a block's priority can downgrade "
+            "or clear it. Typically a session or workflow ID."
+        ),
+    )
 
     kv_transfer_params: dict[str, Any] | None = Field(
         default=None,
@@ -329,6 +346,10 @@ class CompletionRequest(OpenAIBaseModel):
         if self.kv_transfer_params:
             # Pass in kv_transfer_params via extra_args
             extra_args["kv_transfer_params"] = self.kv_transfer_params
+        if self.retention_directives is not None:
+            extra_args["retention_directives"] = self.retention_directives
+        if self.retention_scope is not None:
+            extra_args["retention_scope"] = self.retention_scope
         return SamplingParams.from_optional(
             n=self.n,
             presence_penalty=self.presence_penalty,
