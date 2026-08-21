@@ -1456,3 +1456,55 @@ class TestCacheSalt:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         handler.create_messages.assert_not_awaited()
+
+
+# ======================================================================
+# vllm_xargs pass-through
+# ======================================================================
+
+
+class TestVllmXargs:
+    def test_vllm_xargs_passed_through(self):
+        """vllm_xargs reaches the converted ChatCompletionRequest."""
+        request = _make_request(
+            [{"role": "user", "content": "Hello"}],
+            vllm_xargs={
+                "kv_cache_report_mode": "full",
+                "existing_extension": 7,
+            },
+        )
+
+        result = _convert(request)
+
+        assert result.vllm_xargs == {
+            "kv_cache_report_mode": "full",
+            "existing_extension": 7,
+        }
+
+    def test_vllm_xargs_reaches_sampling_params_with_kv_transfer(self):
+        """SamplingParams keeps vllm_xargs and KV transfer metadata."""
+        kv_transfer_params = {
+            "do_remote_decode": True,
+            "do_remote_prefill": False,
+        }
+        request = _make_request(
+            [{"role": "user", "content": "Hello"}],
+            vllm_xargs={
+                "kv_cache_report_mode": "full",
+                "existing_extension": "kept",
+            },
+            kv_transfer_params=kv_transfer_params,
+        )
+
+        converted = _convert(request)
+        sampling_params = converted.to_sampling_params(
+            max_tokens=converted.max_completion_tokens or 0,
+            default_sampling_params={},
+        )
+
+        assert converted.kv_transfer_params == kv_transfer_params
+        assert sampling_params.extra_args == {
+            "kv_cache_report_mode": "full",
+            "existing_extension": "kept",
+            "kv_transfer_params": kv_transfer_params,
+        }
