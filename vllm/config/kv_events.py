@@ -28,6 +28,14 @@ class KVEventsConfig:
     """The zmq endpoint to use for replaying kv events.
     """
 
+    snapshot_endpoint: str | None = None
+    """The zmq ROUTER endpoint serving compacted snapshots of the live KV
+    cache state. Enables publisher identities and idle heartbeats on the live
+    stream. A snapshot includes its publisher identity and the sequence number
+    of the last recorded batch it covers. Consumers load it into a private
+    index, then resume with contiguous live batches from the same publisher.
+    """
+
     buffer_steps: int = 10_000
     """The number of steps to cache for replay endpoint. Will only save
     events from the last N steps for the replay endpoint.

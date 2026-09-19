@@ -1,0 +1,59 @@
+# Historical v0.22.0 validation manifest. Populate its ConfigMap from a422df16ae.
+# Rebased main modules require an image built from the corresponding main base.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: codex-kv-snapshot-poc
+  labels:
+    app: codex-kv-snapshot-poc
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: patch
+      configMap:
+        name: codex-kv-snapshot-poc
+    - name: shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 8Gi
+  containers:
+    - name: server
+      image: vllm/vllm-openai:v0.22.0
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -e
+          cd /tmp
+          export PATH="$HOME/.local/bin:$PATH"
+          command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv --system-site-packages .venv
+          D=$(.venv/bin/python -c 'import vllm, os; print(os.path.dirname(vllm.__file__))')
+          cp /patch/kv_events.py "$D/distributed/kv_events.py"
+          cp /patch/kv_events_snapshot.py "$D/distributed/kv_events_snapshot.py"
+          cp /patch/config_kv_events.py "$D/config/kv_events.py"
+          exec .venv/bin/python -m vllm.entrypoints.openai.api_server --model Qwen/Qwen3-0.6B --port 8000 --num-gpu-blocks-override 2048 --max-model-len 4096 --kv-events-config '{"enable_kv_cache_events":true,"publisher":"zmq","endpoint":"tcp://*:5557","snapshot_endpoint":"tcp://*:5657"}'
+      volumeMounts:
+        - {name: patch, mountPath: /patch}
+        - {name: shm, mountPath: /dev/shm}
+      resources:
+        requests: {cpu: "8", memory: 32Gi, nvidia.com/gpu: "1"}
+        limits: {cpu: "8", memory: 32Gi, nvidia.com/gpu: "1"}
+    - name: client
+      image: vllm/vllm-openai:v0.22.0
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -e
+          cd /tmp
+          export PATH="$HOME/.local/bin:$PATH"
+          command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv --system-site-packages .venv
+          trap 'cat /tmp/capture.log' EXIT
+          .venv/bin/python -u /patch/gpu_capture.py > /tmp/capture.log 2>&1
+          cat /tmp/capture.log
+          sleep 3600
+      volumeMounts:
+        - {name: patch, mountPath: /patch}
+      resources:
+        requests: {cpu: "8", memory: 16Gi}
+        limits: {cpu: "8", memory: 16Gi}

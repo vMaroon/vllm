@@ -4,13 +4,14 @@
 import queue
 import threading
 import time
+import uuid
 from abc import ABC, abstractmethod
 from collections import Counter, deque
 from collections.abc import Callable
 from dataclasses import asdict
 from itertools import count
 from queue import Queue
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import msgspec
 import zmq
@@ -24,6 +25,9 @@ from vllm.utils.network_utils import (
     split_zmq_path,
 )
 from vllm.v1.core.kv_cache_utils import ExternalBlockHash
+
+if TYPE_CHECKING:
+    from vllm.distributed.kv_events_snapshot import KVEventSnapshotRecorder
 
 logger = init_logger(__name__)
 
@@ -315,6 +319,11 @@ class ZmqEventPublisher(EventPublisher):
         Optional ROUTER address for replay requests. When given, subscribers can
         request missed batches by sending the starting sequence number as an
         8-byte big-endian integer.
+    snapshot_endpoint:
+        Optional ROUTER address serving compacted snapshots of the live KV
+        cache state. When enabled, live sequence frames append a 16-byte
+        publisher identity to the sequence number, and idle publishers emit
+        empty KV batches every second. See `vllm.distributed.kv_events_snapshot`.
     buffer_steps:
         Number of past batches to keep for replay.
     hwm:
@@ -334,6 +343,7 @@ class ZmqEventPublisher(EventPublisher):
         data_parallel_rank: int,
         endpoint: str = "tcp://*:5557",
         replay_endpoint: str | None = None,
+        snapshot_endpoint: str | None = None,
         buffer_steps: int = 10_000,
         hwm: int = 100_000,
         max_queue_size: int = 100_000,
@@ -357,16 +367,27 @@ class ZmqEventPublisher(EventPublisher):
         assert self._endpoint is not None
         self._hwm = hwm
         self._socket_setup()
+        snapshot_endpoint = self.offset_endpoint_port(snapshot_endpoint, self._dp_rank)
         self._publisher_config = KVEventsConfig(
             enable_kv_cache_events=True,
             publisher="zmq",
             endpoint=self._endpoint,
             replay_endpoint=self._replay_endpoint,
+            snapshot_endpoint=snapshot_endpoint,
             buffer_steps=buffer_steps,
             hwm=hwm,
             max_queue_size=max_queue_size,
             topic=topic,
         )
+
+        self._snapshot_recorder: KVEventSnapshotRecorder | None = None
+        self._snapshot_stream_id = uuid.uuid4().bytes if snapshot_endpoint else b""
+        if snapshot_endpoint is not None:
+            from vllm.distributed import kv_events_snapshot
+
+            self._snapshot_recorder = kv_events_snapshot.KVEventSnapshotRecorder(
+                snapshot_endpoint, self._dp_rank, self._snapshot_stream_id
+            )
 
         # Payload
         self._seq_gen = count()
@@ -412,6 +433,9 @@ class ZmqEventPublisher(EventPublisher):
 
         if self._thread.is_alive():
             self._thread.join(timeout=self.SHUTDOWN_TIMEOUT)
+
+        if self._snapshot_recorder is not None:
+            self._snapshot_recorder.shutdown(timeout=self.SHUTDOWN_TIMEOUT)
 
         # Clean up ZMQ resources
         try:
@@ -473,6 +497,7 @@ class ZmqEventPublisher(EventPublisher):
 
         assert self._pub is not None  # narrows type for mypy
 
+        last_send = time.monotonic()
         while self._running or self._event_queue.qsize() > 0:
             # --- replay (non-critical) ---------------------------------
             if self._replay is not None and self._replay.poll(0):
@@ -482,22 +507,34 @@ class ZmqEventPublisher(EventPublisher):
                     logger.exception("Error in replay: %s", e)
 
             # --- main queue (critical) ---------------------------------
+            queued = True
             try:
                 event = self._event_queue.get(timeout=0.1)
                 if event is None:
                     break  # Sentinel received, exit thread
             except queue.Empty:
-                continue
+                if not self._snapshot_stream_id or time.monotonic() - last_send < 1:
+                    continue
+                queued = False
+                event = KVEventBatch(
+                    ts=time.time(), events=[], data_parallel_rank=self._dp_rank
+                )
 
             try:
                 seq = next(self._seq_gen)
-
                 payload = self._pack.encode(event)
-                seq_bytes = seq.to_bytes(8, "big")
+                # Record before sending so that any batch a subscriber has
+                # received is covered by the next snapshot it requests.
+                if self._snapshot_recorder is not None:
+                    self._snapshot_recorder.record(seq, payload)
+
+                seq_bytes = seq.to_bytes(8, "big") + self._snapshot_stream_id
                 self._pub.send_multipart((self._topic_bytes, seq_bytes, payload))
 
                 self._buffer.append((seq, payload))
-                self._event_queue.task_done()
+                last_send = time.monotonic()
+                if queued:
+                    self._event_queue.task_done()
 
             except Exception as e:
                 # Publishing failed;  back-off a bit to avoid a tight error loop
