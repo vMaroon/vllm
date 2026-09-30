@@ -71,6 +71,10 @@ def attach_router(app: FastAPI):
             "/server_info",
         ],
         registry=registry,
+        # Counts a request from HTTP arrival to the end of its response stream,
+        # before the engine sees it; routers use it as an arrival-time load signal.
+        should_instrument_requests_inprogress=True,
+        inprogress_labels=True,
     ).add().instrument(app).expose(app, response_class=PrometheusResponse)
 
     # Add prometheus asgi middleware to route /metrics requests
