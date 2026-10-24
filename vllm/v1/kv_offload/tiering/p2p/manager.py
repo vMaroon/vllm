@@ -84,6 +84,14 @@ _IDLE_REAP_HEADROOM = 8
 _RECONNECT_MIN_BACKOFF_S = 1.0
 _RECONNECT_MAX_BACKOFF_S = 60.0
 
+# A peer whose session died before its handshake completed (unreachable,
+# rejected, or never acked) is not dialed again for this long, so requests
+# naming it compute locally at once. Long against the control transport's
+# connect deadline, so a dead peer costs one deadline per window; short
+# against an address coming back with a new process behind it. An inbound
+# connection from the peer lifts the wait.
+_REDIAL_AFTER_FAILED_HANDSHAKE_S = 30.0
+
 
 def _remote_prefiller_params(kv_params: dict | None) -> dict | None:
     """Return the ``remote_prefiller`` sub-dict, or None if absent.
@@ -370,6 +378,9 @@ class P2PSecondaryTierManager(SecondaryTierManager):
         # the backoff it never expires, so the peer-down log shows a peer
         # that keeps faulting under traffic too sparse to escalate.
         self._data_plane_faults: dict[str, int] = {}
+        # peer_id → monotonic time before which it is not dialed; see
+        # _REDIAL_AFTER_FAILED_HANDSHAKE_S.
+        self._redial_at: dict[str, float] = {}
         # kv_request_id → session, set when the bound session has received
         # FetchMsg for that id. submit_store after binding routes directly
         # to the session; before binding, batches are parked in
@@ -732,6 +743,11 @@ class P2PSecondaryTierManager(SecondaryTierManager):
             return session
         if self._reconnect_wait(peer_id) > 0:
             return None
+        redial_at = self._redial_at.get(peer_id)
+        if redial_at is not None:
+            if time.monotonic() < redial_at:
+                return None
+            del self._redial_at[peer_id]
 
         max_peers = envs.VLLM_P2P_MAX_PEERS
         if len(self._sessions) >= max_peers:
@@ -803,6 +819,8 @@ class P2PSecondaryTierManager(SecondaryTierManager):
                     conn.send({TYPE_KEY: DisconnectMsg.TYPE})
                 conn.close()
                 continue
+            # The peer reached us, so it is worth dialing again.
+            self._redial_at.pop(conn.peer_id, None)
             try:
                 existing = self._sessions.get(conn.peer_id)
                 if existing is not None:
@@ -869,6 +887,14 @@ class P2PSecondaryTierManager(SecondaryTierManager):
                 backoff = self._schedule_reconnect_backoff(pid)
                 if backoff:
                     fault_info += f"; reconnect backoff {backoff:.0f}s"
+            if not session.ready:
+                now = time.monotonic()
+                self._redial_at = {p: t for p, t in self._redial_at.items() if t > now}
+                self._redial_at[pid] = now + _REDIAL_AFTER_FAILED_HANDSHAKE_S
+                fault_info += (
+                    f"; handshake never completed, not dialing it for "
+                    f"{_REDIAL_AFTER_FAILED_HANDSHAKE_S:.0f}s"
+                )
             logger.warning(
                 "P2P %s: peer %s down (%s)%s",
                 self._local_id,

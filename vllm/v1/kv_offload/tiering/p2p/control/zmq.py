@@ -27,6 +27,15 @@ _HEARTBEAT_IVL_MS = 2000
 _HEARTBEAT_TIMEOUT_MS = 10000
 _HEARTBEAT_TTL_MS = 10000
 
+# Deadlines for an outbound connection's TCP connect and its ZMTP greeting.
+# The peer's libzmq I/O thread completes both without its engine, so they take
+# milliseconds even on a busy peer, and a peer that misses either is
+# unreachable: an address with no host behind it, or a process that accepts
+# TCP but never speaks ZMTP. libzmq reports a miss as a fatal monitor event.
+# 3 s rides out one lost SYN (Linux resends the first after 1 s).
+_CONNECT_TIMEOUT_MS = 3000
+_HANDSHAKE_IVL_MS = 3000
+
 # Events that indicate a fatal connection failure — the peer will never
 # become reachable through this socket.
 _FATAL_MONITOR_EVENTS: frozenset[int] = frozenset()  # populated after import
@@ -268,6 +277,8 @@ class ZmqTransport(ControlTransport):
 
         dealer = self._zmq_ctx.socket(zmq.DEALER)
         _apply_heartbeat(dealer)
+        dealer.setsockopt(zmq.CONNECT_TIMEOUT, _CONNECT_TIMEOUT_MS)
+        dealer.setsockopt(zmq.HANDSHAKE_IVL, _HANDSHAKE_IVL_MS)
         dealer.identity = self._local_id.encode()
 
         # Unique per connection, not per peer: libzmq releases an inproc

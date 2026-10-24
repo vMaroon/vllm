@@ -351,15 +351,7 @@ class TestZmqReconnect:
         unresponsive peer, and its monitor events then block libzmq's I/O
         thread, so no socket in the context can send or receive again.
         """
-        apply_heartbeat = zmq_transport._apply_heartbeat
-
-        def apply_heartbeat_fast_handshake(sock: zmq.Socket) -> None:
-            apply_heartbeat(sock)
-            sock.setsockopt(zmq.HANDSHAKE_IVL, 200)
-
-        monkeypatch.setattr(
-            zmq_transport, "_apply_heartbeat", apply_heartbeat_fast_handshake
-        )
+        monkeypatch.setattr(zmq_transport, "_HANDSHAKE_IVL_MS", 200)
         # Accepts TCP connections but never answers the ZMTP greeting.
         silent = socket.socket()
         silent.bind(("127.0.0.1", 0))
@@ -436,6 +428,63 @@ class TestZmqReconnect:
                 _WEDGED_TRANSPORTS.append(transport_b)
             else:
                 transport_b.close()
+
+
+class TestUnreachablePeer:
+    """An outbound connection to a peer that cannot be reached dies within
+    seconds, so its session falls back instead of waiting out the session
+    handshake deadline."""
+
+    # The connect or greeting deadline plus polling slack.
+    DEADLINE_S = 5.0
+
+    def _dies_within_deadline(self, transport: ZmqTransport, conn) -> bool:
+        end = time.monotonic() + self.DEADLINE_S
+        while conn.alive and time.monotonic() < end:
+            transport.poll()
+            time.sleep(0.05)
+        return not conn.alive
+
+    def test_connect_that_never_completes_marks_connection_dead(self):
+        # Linux drops SYNs to a listener whose accept queue is full, so a
+        # connect to it stays in progress like one to an address with no host.
+        full = socket.socket()
+        full.bind(("127.0.0.1", 0))
+        full.listen(0)
+        addr = full.getsockname()
+        filler = socket.create_connection(addr, timeout=1.0)
+        probe = socket.socket()
+        probe.setblocking(False)
+        probe.connect_ex(addr)
+        _, connected, _ = select.select([], [probe], [], 0.5)
+        probe.close()
+        if connected:
+            filler.close()
+            full.close()
+            pytest.skip("kernel completes connects to a full accept queue")
+
+        transport, _ = _make_transport()
+        try:
+            conn = transport.connect(f"127.0.0.1:{addr[1]}")
+            assert self._dies_within_deadline(transport, conn)
+        finally:
+            transport.close()
+            filler.close()
+            full.close()
+
+    def test_peer_that_never_sends_greeting_marks_connection_dead(self):
+        # Accepts TCP connections but never sends the ZMTP greeting, like a
+        # process whose libzmq I/O thread is blocked.
+        silent = socket.socket()
+        silent.bind(("127.0.0.1", 0))
+        silent.listen(8)
+        transport, _ = _make_transport()
+        try:
+            conn = transport.connect(f"127.0.0.1:{silent.getsockname()[1]}")
+            assert self._dies_within_deadline(transport, conn)
+        finally:
+            transport.close()
+            silent.close()
 
 
 class TestExpandedMonitorEvents:

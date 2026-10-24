@@ -34,6 +34,7 @@ from vllm.v1.kv_offload.tiering.manager import TieringOffloadingManager
 from vllm.v1.kv_offload.tiering.p2p import manager as manager_module
 from vllm.v1.kv_offload.tiering.p2p.manager import (
     _RECONNECT_MAX_BACKOFF_S,
+    _REDIAL_AFTER_FAILED_HANDSHAKE_S,
     _UNBOUND_STORE_TIMEOUT_S,
     P2PSecondaryTierManager,
     _annotate_req_context,
@@ -129,6 +130,7 @@ def _make_manager() -> P2PSecondaryTierManager:
     mgr._sessions = {}
     mgr._reconnect_backoff = {}
     mgr._data_plane_faults = {}
+    mgr._redial_at = {}
     mgr._kv_to_session = {}
     mgr._unbound_stores = {}
     mgr._reaped_stores = {}
@@ -2426,3 +2428,95 @@ class TestReconnectBackoff:
         assert conn.sent == [{TYPE_KEY: DisconnectMsg.TYPE}]
         assert conn.close_calls == 1
         assert self.PEER not in mgr._sessions
+
+
+class TestRedialAfterFailedHandshake:
+    """A peer whose session died before its handshake completed is not dialed
+    again for _REDIAL_AFTER_FAILED_HANDSHAKE_S; requests naming it fall back
+    to local compute at once."""
+
+    PEER = "10.0.0.9:7777"
+
+    class _Conn(_RecordingConn):
+        alive = True
+
+        def send(self, msg: dict) -> None:
+            pass
+
+    def _make(self):
+        mgr = _make_manager()
+        dials: list[str] = []
+        conn_cls = self._Conn
+
+        class Control:
+            def connect(self, peer_id):
+                dials.append(peer_id)
+                return conn_cls(peer_id)
+
+            def poll(self):
+                return []
+
+        class FakeData:
+            block_len = 4096
+            base_addr = 0x1000
+            num_blocks = 16
+            config_fingerprint = ""
+
+            def get_agent_metadata(self):
+                return b"meta"
+
+            def remove_remote_peer(self, pid):
+                pass
+
+        mgr._control = Control()  # type: ignore[assignment]
+        mgr._data = FakeData()  # type: ignore[assignment]
+        return mgr, dials
+
+    def _reap(self, mgr: P2PSecondaryTierManager, ready: bool) -> None:
+        session = _FakeSession(peer_id=self.PEER, alive=False, connected=True)
+        session.ready = ready
+        mgr._sessions[self.PEER] = session  # type: ignore[assignment]
+        mgr._reap_dead_sessions()
+
+    def _request(self, mgr: P2PSecondaryTierManager, kv_request_id: str):
+        host, port = self.PEER.rsplit(":", 1)
+        ctx = ReqContext(
+            req_id=kv_request_id,
+            kv_transfer_params=_remote_kv_source_kv_params(
+                remote_host=host, remote_port=int(port), kv_request_id=kv_request_id
+            ),
+        )
+        mgr.on_new_request(ctx)
+        return ctx
+
+    def test_failed_handshake_skips_redial_and_falls_back(self):
+        mgr, dials = self._make()
+        self._reap(mgr, ready=False)
+
+        ctx = self._request(mgr, "req-2")
+        assert dials == []
+        assert self.PEER not in mgr._sessions
+        assert mgr.lookup(OffloadKey(b"k" * 32), ctx) == LookupResult.MISS
+
+    def test_death_after_handshake_redials(self):
+        mgr, dials = self._make()
+        self._reap(mgr, ready=True)
+
+        self._request(mgr, "req-2")
+        assert dials == [self.PEER]
+
+    def test_redials_once_the_window_has_passed(self):
+        mgr, dials = self._make()
+        self._reap(mgr, ready=False)
+        mgr._redial_at[self.PEER] = time.monotonic() - _REDIAL_AFTER_FAILED_HANDSHAKE_S
+
+        self._request(mgr, "req-2")
+        assert dials == [self.PEER]
+
+    def test_inbound_connection_lifts_the_wait(self):
+        mgr, dials = self._make()
+        self._reap(mgr, ready=False)
+
+        mgr._accept_new_peers([self._Conn(self.PEER)])  # type: ignore[list-item]
+        assert self.PEER in mgr._sessions
+        assert self.PEER not in mgr._redial_at
